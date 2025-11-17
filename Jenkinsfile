@@ -42,13 +42,21 @@ pipeline {
 
         stage('SONARQUBE SCAN'){
             environment{
-                SONAR_HOST_URL='http://192.168.50.4:9000/'
+                // Note: SonarScanner uses token and host URL via properties, 
+                // but we define them here to pass them easily.
+                SONAR_HOST_URL='http://192.168.50.4:9000'
                 SONAR_AUTH_TOKEN= credentials('sonarqube')
             }
             steps{
-                // CHANGE: Replaced 'mvn sonar:sonar' with the generic 'sonar-scanner' for Python.
-                // Updated the projectKey to match the repository name for better tracking.
-                sh "sonar-scanner -Dsonar.projectKey=alimsahli_sandbox -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.token=$SONAR_AUTH_TOKEN"
+                // CHANGE: Use the official Docker image for SonarScanner
+                sh '''
+                    docker run --rm \
+                        -e SONAR_HOST_URL="${SONAR_HOST_URL}" \
+                        -e SONAR_TOKEN="${SONAR_AUTH_TOKEN}" \
+                        -v $WORKSPACE:/usr/src \
+                        sonarsource/sonar-scanner-cli \
+                        -Dsonar.projectKey=alimsahli_sandbox
+                '''
             }
         }
 
