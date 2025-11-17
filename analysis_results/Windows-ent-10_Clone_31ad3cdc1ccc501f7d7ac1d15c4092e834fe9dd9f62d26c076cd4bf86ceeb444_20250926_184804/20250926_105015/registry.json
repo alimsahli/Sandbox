@@ -1,0 +1,27 @@
+﻿{
+    "EventId":  12,
+    "TimeCreated":  "\/Date(1758909017278)\/",
+    "ProcessGuid":  "{f1988ae2-d258-68d6-7a00-000000001e00}",
+    "ProcessId":  "4112",
+    "ParentProcessGuid":  null,
+    "Image":  "C:\\Users\\Stage.Ali\\Desktop\\Malware\\31ad3cdc1ccc501f7d7ac1d15c4092e834fe9dd9f62d26c076cd4bf86ceeb444.exe",
+    "CommandLine":  null,
+    "User":  "DESKTOP-KVSEOF0\\Stage.Ali",
+    "TargetFilename":  null,
+    "DestinationIp":  null,
+    "DestinationPort":  null,
+    "SourceIp":  null,
+    "SourcePort":  null,
+    "Protocol":  null,
+    "QueryName":  null,
+    "Details":  {
+                    "Image":  "C:\\Users\\Stage.Ali\\Desktop\\Malware\\31ad3cdc1ccc501f7d7ac1d15c4092e834fe9dd9f62d26c076cd4bf86ceeb444.exe",
+                    "ProcessGuid":  "{f1988ae2-d258-68d6-7a00-000000001e00}",
+                    "TargetObject":  "HKCR",
+                    "ProcessId":  "4112",
+                    "UtcTime":  "2025-09-26 17:50:17.259",
+                    "RuleName":  "-",
+                    "EventType":  "CreateKey",
+                    "User":  "DESKTOP-KVSEOF0\\Stage.Ali"
+                }
+}

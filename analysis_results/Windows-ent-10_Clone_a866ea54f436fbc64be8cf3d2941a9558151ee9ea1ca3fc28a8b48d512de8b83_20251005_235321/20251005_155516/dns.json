@@ -1,0 +1,28 @@
+﻿{
+    "EventId":  22,
+    "TimeCreated":  "\/Date(1759704970791)\/",
+    "ProcessGuid":  "{f1988ae2-f788-68e2-7c00-000000001e00}",
+    "ProcessId":  "4116",
+    "ParentProcessGuid":  null,
+    "Image":  "C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319\\MSBuild.exe",
+    "CommandLine":  null,
+    "User":  "DESKTOP-KVSEOF0\\Stage.Ali",
+    "TargetFilename":  null,
+    "DestinationIp":  null,
+    "DestinationPort":  null,
+    "SourceIp":  null,
+    "SourcePort":  null,
+    "Protocol":  null,
+    "QueryName":  "checkip.dyndns.org",
+    "Details":  {
+                    "Image":  "C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319\\MSBuild.exe",
+                    "ProcessGuid":  "{f1988ae2-f788-68e2-7c00-000000001e00}",
+                    "QueryResults":  "-",
+                    "QueryName":  "checkip.dyndns.org",
+                    "ProcessId":  "4116",
+                    "UtcTime":  "2025-10-05 22:56:14.769",
+                    "RuleName":  "-",
+                    "QueryStatus":  "1460",
+                    "User":  "DESKTOP-KVSEOF0\\Stage.Ali"
+                }
+}

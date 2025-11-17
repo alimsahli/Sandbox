@@ -1,0 +1,56 @@
+﻿[
+    {
+        "EventId":  11,
+        "TimeCreated":  "\/Date(1758991536666)\/",
+        "ProcessGuid":  "{f1988ae2-14ac-68d8-7a00-000000001e00}",
+        "ProcessId":  "5096",
+        "ParentProcessGuid":  null,
+        "Image":  "C:\\Users\\Stage.Ali\\Desktop\\Malware\\901d6191e8bf99cf1a2a6b770519d18b82875294e95a55d1e87e42ef8bad213a.exe",
+        "CommandLine":  null,
+        "User":  "DESKTOP-KVSEOF0\\Stage.Ali",
+        "TargetFilename":  "C:\\Users\\Stage.Ali\\AppData\\Roaming\\MaximumConcurrencyLevel.exe",
+        "DestinationIp":  null,
+        "DestinationPort":  null,
+        "SourceIp":  null,
+        "SourcePort":  null,
+        "Protocol":  null,
+        "QueryName":  null,
+        "Details":  {
+                        "Image":  "C:\\Users\\Stage.Ali\\Desktop\\Malware\\901d6191e8bf99cf1a2a6b770519d18b82875294e95a55d1e87e42ef8bad213a.exe",
+                        "ProcessGuid":  "{f1988ae2-14ac-68d8-7a00-000000001e00}",
+                        "TargetFilename":  "C:\\Users\\Stage.Ali\\AppData\\Roaming\\MaximumConcurrencyLevel.exe",
+                        "ProcessId":  "5096",
+                        "UtcTime":  "2025-09-27 16:45:36.652",
+                        "RuleName":  "-",
+                        "CreationUtcTime":  "2025-09-27 16:45:36.652",
+                        "User":  "DESKTOP-KVSEOF0\\Stage.Ali"
+                    }
+    },
+    {
+        "EventId":  11,
+        "TimeCreated":  "\/Date(1758991536652)\/",
+        "ProcessGuid":  "{f1988ae2-14ac-68d8-7a00-000000001e00}",
+        "ProcessId":  "5096",
+        "ParentProcessGuid":  null,
+        "Image":  "C:\\Users\\Stage.Ali\\Desktop\\Malware\\901d6191e8bf99cf1a2a6b770519d18b82875294e95a55d1e87e42ef8bad213a.exe",
+        "CommandLine":  null,
+        "User":  "DESKTOP-KVSEOF0\\Stage.Ali",
+        "TargetFilename":  "C:\\Users\\Stage.Ali\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\MaximumConcurrencyLevel.vbs",
+        "DestinationIp":  null,
+        "DestinationPort":  null,
+        "SourceIp":  null,
+        "SourcePort":  null,
+        "Protocol":  null,
+        "QueryName":  null,
+        "Details":  {
+                        "Image":  "C:\\Users\\Stage.Ali\\Desktop\\Malware\\901d6191e8bf99cf1a2a6b770519d18b82875294e95a55d1e87e42ef8bad213a.exe",
+                        "ProcessGuid":  "{f1988ae2-14ac-68d8-7a00-000000001e00}",
+                        "TargetFilename":  "C:\\Users\\Stage.Ali\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\MaximumConcurrencyLevel.vbs",
+                        "ProcessId":  "5096",
+                        "UtcTime":  "2025-09-27 16:45:36.650",
+                        "RuleName":  "-",
+                        "CreationUtcTime":  "2025-09-27 16:45:36.650",
+                        "User":  "DESKTOP-KVSEOF0\\Stage.Ali"
+                    }
+    }
+]

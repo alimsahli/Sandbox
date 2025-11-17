@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMEDRA SPHERE - Cyber Sandbox</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        html, body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            margin: 0;
+            padding: 0;
+        }
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            width: 250px;
+            background: linear-gradient(180deg, #1e293b 0%, #334155 100%);
+            box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+        .sidebar.hidden { transform: translateX(-250px); }
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+        .nav-item:hover {
+            background: rgba(59, 130, 246, 0.1);
+            color: #60a5fa;
+            border-left-color: #60a5fa;
+        }
+        .nav-item.active {
+            background: rgba(59, 130, 246, 0.2);
+            color: #93c5fd;
+            border-left-color: #3b82f6;
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        .progress-log {
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(31, 41, 55, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            font-family: 'monospace', monospace;
+            font-size: 0.875rem;
+            color: #D1D5DB;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .progress-log p { margin-bottom: 0.5rem; display: flex; align-items: flex-start; }
+        .progress-log p::before { margin-right: 0.75rem; font-weight: bold; }
+        .progress-log p.success::before { content: '✓'; color: #34D399; }
+        .progress-log p.info::before { content: '»'; color: #60A5FA; }
+        .progress-log p.error::before { content: '✗'; color: #F87171; }
+        .upload-area {
+            background: linear-gradient(135deg, rgba(55, 65, 81, 0.8) 0%, rgba(75, 85, 99, 0.8) 100%);
+            backdrop-filter: blur(10px);
+            border: 2px dashed rgba(156, 163, 175, 0.5);
+            transition: all 0.3s ease;
+        }
+        .upload-area:hover {
+            border-color: #60a5fa;
+            box-shadow: 0 0 20px rgba(96, 165, 250, 0.3);
+        }
+        .upload-area.dragover {
+            border-color: #34d399;
+            box-shadow: 0 0 30px rgba(52, 211, 153, 0.4);
+        }
+        .card {
+            background: rgba(55, 65, 81, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+        .card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .analysis-selected { background: rgba(59,130,246,0.18); border-left-color: #3b82f6; }
+        .progress-bar {
+            background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%);
+        }
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(107, 114, 128, 0.4);
+        }
+        .glow {
+            box-shadow: 0 0 10px rgba(96, 165, 250, 0.5);
+        }
+        .animate-pulse { animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(31, 41, 55, 0.5); }
+        ::-webkit-scrollbar-thumb { background: rgba(75, 85, 99, 0.8); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(107, 114, 128, 0.8); }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-250px); }
+            .main-content { margin-left: 0; }
+        }
+    </style>
+</head>
+<body class="text-gray-100">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2 class="text-xl font-bold text-white">IMEDRA SPHERE</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-tab="analyze">
+                <i class="fas fa-search mr-3"></i> Analyze
+            </a>
+            <a href="#" class="nav-item" data-tab="reports">
+                <i class="fas fa-chart-bar mr-3"></i> Reports
+            </a>
+            <a href="#" class="nav-item" data-tab="about">
+                <i class="fas fa-info-circle mr-3"></i> About
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container mx-auto max-w-4xl w-full">
+        <div class="bg-gray-800 rounded-2xl shadow-2xl p-6 sm:p-8 relative ring-1 ring-white/10">
+            <div class="absolute top-6 right-6 sm:top-8 sm:right-8">
+                <img src="/static/logo-light.png" alt="IMEDRA SPHERE Logo" class="w-20 h-20 sm:w-24 sm:h-24 opacity-80">
+            </div>
+
+            <div class="text-center mb-8">
+                <h1 class="text-3xl sm:text-4xl font-bold text-white">IMEDRA SPHERE</h1>
+                <p class="text-gray-400 mt-2">Upload .zip files to launch dedicated analysis sandboxes</p>
+            </div>
+
+            <form id="upload-form" class="mb-8" enctype="multipart/form-data">
+                <div class="upload-area rounded-xl p-8 text-center cursor-pointer" id="drop-area">
+                    <input type="file" id="file-input" name="files" class="hidden" multiple accept=".zip,.7z,.rar">
+                    <div id="upload-area-content">
+                        <i class="fas fa-cloud-upload-alt text-5xl text-gray-400"></i>
+                        <p class="mt-4 text-lg">Drag & drop files here or <span class="text-blue-400 font-semibold">browse</span></p>
+                        <p id="file-name" class="text-gray-300 mt-2 h-6"></p>
+                    </div>
+                </div>
+
+                <!-- 🔑 Password input -->
+                <div class="mt-4">
+                    <label for="zip-password" class="block text-sm font-medium text-gray-300 mb-1">Password (if ZIP is protected)</label>
+                    <input type="password" id="zip-password" name="zip_password" placeholder="Enter password or leave empty"
+                           class="w-full p-2 rounded-md bg-gray-700 border border-gray-500 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div class="text-center mt-6">
+                    <button type="submit" id="submit-button" class="btn-primary text-white font-bold py-3 px-8 rounded-lg w-full md:w-auto disabled:bg-gray-500 disabled:cursor-not-allowed disabled:transform-none">
+                        <i class="fas fa-rocket mr-2"></i>Launch Analysis
+                    </button>
+                </div>
+            </form>
+
+            <div id="results-section" class="hidden">
+                <h2 class="text-2xl font-bold mb-4 text-center text-white">Analysis Status</h2>
+                <div id="report-container" class="space-y-4"></div>
+                 <div class="text-center mt-8">
+                    <button id="reset-button" class="btn-secondary text-white font-bold py-3 px-8 rounded-lg hidden">
+                        <i class="fas fa-redo mr-2"></i>Analyze More Files
+                    </button>
+                </div>
+            </div>
+
+            <div id="reports-section" class="hidden">
+                <h2 class="text-2xl font-bold mb-4 text-center text-white">Analysis Reports</h2>
+
+                <!-- Two-column layout: analyses (left) and files (right) -->
+                <div class="flex gap-4">
+                    <!-- Left: folder list -->
+                    <div id="analyses-list" class="w-1/3 space-y-2 overflow-auto" style="max-height:60vh;"></div>
+
+                    <!-- Right: files tree -->
+                    <div id="files-list" class="w-2/3 hidden overflow-auto" style="max-height:60vh;"></div>
+                </div>
+            </div>
+
+            <div id="about-section" class="hidden">
+                <h2 class="text-2xl font-bold mb-4 text-center text-white">About IMEDRA SPHERE</h2>
+                <div class="card p-6">
+                    <p class="text-gray-300 mb-4">
+                        IMEDRA SPHERE is a cutting-edge cyber security sandbox platform designed for automated malware analysis. It leverages VirtualBox virtual machines to create isolated environments where suspicious files can be safely detonated and analyzed.
+                    </p>
+                    <p class="text-gray-300 mb-4">
+                        The platform provides comprehensive behavioral reports including process activity, network connections, file system changes, and registry modifications. Built with security researchers and analysts in mind, IMEDRA SPHERE ensures that potentially harmful software is contained within disposable virtual environments.
+                    </p>
+                    <h3 class="text-lg font-semibold text-white mb-2">Key Features:</h3>
+                    <ul class="list-disc list-inside text-gray-300 space-y-1">
+                        <li>Secure sandboxing using VirtualBox clones</li>
+                        <li>Support for ZIP, 7Z, RAR archives</li>
+                        <li>Password-protected archive handling</li>
+                        <li>Real-time analysis progress monitoring</li>
+                        <li>Comprehensive JSON reports</li>
+                        <li>Web-based interface for easy access</li>
+                        <li>Automated cleanup and environment management</li>
+                    </ul>
+                    <p class="text-gray-300 mt-4">
+                        This platform is developed to assist in the detection and analysis of malware, helping to identify threats before they can impact systems in production environments.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div> <!-- end main-content -->
+
+    <div id="json-viewer" class="fixed right-0 top-0 h-full w-1/3 bg-gray-800 p-4 overflow-y-auto hidden z-50">
+        <button id="close-json" class="mb-4 text-white bg-red-500 px-4 py-2 rounded">Close</button>
+        <pre id="json-content" class="text-white text-sm"></pre>
+    </div>
+
+    <script>
+        // --- DOM Element References ---
+        const ui = {
+            uploadForm: document.getElementById('upload-form'),
+            fileInput: document.getElementById('file-input'),
+            dropArea: document.getElementById('drop-area'),
+            fileNameDisplay: document.getElementById('file-name'),
+            submitButton: document.getElementById('submit-button'),
+            resultsSection: document.getElementById('results-section'),
+            reportContainer: document.getElementById('report-container'),
+            resetButton: document.getElementById('reset-button')
+        };
+        
+        let filesToProcess = 0;
+        let dragCounter = 0;
+
+        // --- Event Listeners ---
+        ui.dropArea.addEventListener('click', () => ui.fileInput.click());
+        ui.fileInput.addEventListener('change', updateFileDisplay);
+        ui.uploadForm.addEventListener('submit', handleFormSubmit);
+        ui.resetButton.addEventListener('click', resetUI);
+
+        // Nav tab switching
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const tab = e.target.closest('.nav-item').dataset.tab;
+                switchTab(tab);
+            });
+        });
+
+        // Close JSON viewer
+        document.getElementById('close-json').addEventListener('click', () => {
+            document.getElementById('json-viewer').classList.add('hidden');
+        });
+
+        ui.dropArea.addEventListener('dragenter', (e) => {
+            e.preventDefault();
+            dragCounter++;
+            ui.dropArea.classList.add('dragover');
+        });
+        ui.dropArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dragCounter--;
+            if (dragCounter === 0) {
+                ui.dropArea.classList.remove('dragover');
+            }
+        });
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+        ui.dropArea.addEventListener('drop', handleDrop, false);
+
+        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            dragCounter = 0;
+            ui.dropArea.classList.remove('dragover');
+            ui.fileInput.files = e.dataTransfer.files;
+            updateFileDisplay();
+        }
+
+        function updateFileDisplay() {
+            const count = ui.fileInput.files.length;
+            ui.fileNameDisplay.textContent = count > 0 ? `${count} file(s) selected.` : '';
+        }
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            if (ui.fileInput.files.length === 0) {
+                alert('Please select one or more files to analyze.');
+                return;
+            }
+            
+            filesToProcess = ui.fileInput.files.length;
+            setUIState('loading');
+            
+            for (let i = 0; i < ui.fileInput.files.length; i++) {
+                createStatusCard(`file-${i}`, ui.fileInput.files[i].name);
+            }
+            
+            window.addEventListener('beforeunload', beforeUnloadHandler);
+            
+            const formData = new FormData(ui.uploadForm);
+            
+            try {
+                const response = await fetch('/analyze', { method: 'POST', body: formData });
+                await processStream(response.body);
+            } catch (error) {
+                console.error('Error during analysis stream:', error);
+                ui.reportContainer.innerHTML = `<p class="text-red-400 text-center">A connection error occurred. Please try again.</p>`;
+                analysisFinished();
+            }
+        }
+
+        async function processStream(stream) {
+            const reader = stream.getReader();
+            const decoder = new TextDecoder();
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+                
+                const chunk = decoder.decode(value, { stream: true });
+                const lines = chunk.split('\n').filter(line => line.trim().startsWith('data:'));
+
+                for (const line of lines) {
+                    try {
+                        const data = JSON.parse(line.replace('data: ', ''));
+                        updateCard(data);
+                    } catch (e) { console.error("Failed to parse JSON from stream:", line); }
+                }
+            }
+        }
+
+        function createStatusCard(id, filename) {
+            const cardHTML = `
+                <div id="${id}" class="card">
+                    <div class="p-4 bg-gray-600 rounded-t-lg flex justify-between items-center">
+                        <span class="font-bold text-lg truncate pr-4">${filename}</span>
+                        <div class="spinner w-6 h-6 border-4 border-gray-400 border-t-blue-400 rounded-full animate-spin"></div>
+                    </div>
+                    <div class="p-4">
+                        <div class="w-full bg-gray-600 rounded-full h-2.5 mb-4">
+                            <div class="progress-bar bg-blue-500 h-2.5 rounded-full transition-all duration-500" style="width: 5%"></div>
+                        </div>
+                        <div class="progress-log"><p class="info">Pending...</p></div>
+                    </div>
+                </div>`;
+            ui.reportContainer.insertAdjacentHTML('beforeend', cardHTML);
+        }
+
+        function updateCard(data) {
+            const card = document.getElementById(data.id);
+            if (!card) return;
+
+            const progressBar = card.querySelector('.progress-bar');
+            const logContainer = card.querySelector('.progress-log');
+            
+            if (data.message) {
+                const logType = data.status === 'error' ? 'error' : 'info';
+                logContainer.insertAdjacentHTML('beforeend', `<p class="${logType}">${data.message}</p>`);
+                logContainer.scrollTop = logContainer.scrollHeight;
+            }
+
+            if (data.step) {
+                progressBar.style.width = `${Math.min(98, (data.step / 9) * 100)}%`;
+            }
+
+            if (data.status === 'complete' || data.status === 'error') {
+                filesToProcess--;
+                const isError = data.status === 'error';
+                finalizeCard(card, isError);
+                if (filesToProcess === 0) analysisFinished();
+            }
+        }
+        
+        function finalizeCard(card, isError) {
+            card.querySelector('.spinner')?.remove();
+            const iconClass = isError ? 'fa-times-circle text-red-400' : 'fa-check-circle text-green-400';
+            card.querySelector('.rounded-t-lg').insertAdjacentHTML('beforeend', `<i class="fas ${iconClass} text-xl"></i>`);
+            
+            card.classList.remove('border-gray-500');
+            card.classList.add(isError ? 'border-red-500' : 'border-green-500');
+            
+            const progressBar = card.querySelector('.progress-bar');
+            progressBar.style.width = '100%';
+            progressBar.classList.remove('bg-blue-500');
+            progressBar.classList.add(isError ? 'bg-red-500' : 'bg-green-500');
+        }
+
+        function beforeUnloadHandler(e) {
+            e.preventDefault();
+            return (e.returnValue = 'Analysis is in progress. Are you sure you want to leave?');
+        }
+
+        function analysisFinished() {
+            setUIState('finished');
+            window.removeEventListener('beforeunload', beforeUnloadHandler);
+        }
+
+        function setUIState(state) {
+            if (state === 'loading') {
+                ui.submitButton.disabled = true;
+                ui.uploadForm.classList.add('hidden');
+                ui.resultsSection.classList.remove('hidden');
+                ui.resetButton.classList.add('hidden');
+            } else if (state === 'finished') {
+                ui.resetButton.classList.remove('hidden');
+            } else {
+                ui.resultsSection.classList.add('hidden');
+                ui.uploadForm.classList.remove('hidden');
+                ui.submitButton.disabled = false;
+                ui.fileInput.value = '';
+                ui.fileNameDisplay.textContent = '';
+                ui.reportContainer.innerHTML = '';
+                document.getElementById('reports-section').classList.add('hidden');
+                document.getElementById('about-section').classList.add('hidden');
+                document.getElementById('json-viewer').classList.add('hidden');
+            }
+        }
+
+        function resetUI() { setUIState('idle'); }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+            // Hide all sections
+            ui.uploadForm.classList.add('hidden');
+            ui.resultsSection.classList.add('hidden');
+            document.getElementById('reports-section').classList.add('hidden');
+            document.getElementById('about-section').classList.add('hidden');
+            document.getElementById('json-viewer').classList.add('hidden');
+            if (tab === 'analyze') {
+                ui.uploadForm.classList.remove('hidden');
+            } else if (tab === 'reports') {
+                document.getElementById('reports-section').classList.remove('hidden');
+                loadReports();
+            } else if (tab === 'about') {
+                document.getElementById('about-section').classList.remove('hidden');
+            }
+        }
+
+        async function loadReports() {
+            try {
+                const response = await fetch('/api/reports');
+                const dirs = await response.json();
+                const list = document.getElementById('analyses-list');
+                list.innerHTML = '';
+                dirs.forEach(dir => {
+                    const el = document.createElement('div');
+                    el.className = 'card p-4 cursor-pointer';
+                    el.style.wordBreak = 'break-all';
+                    el.innerHTML = `<h3 class="text-sm font-semibold">${dir}</h3>`;
+                    el.addEventListener('click', () => selectAnalysis(el, dir));
+                    list.appendChild(el);
+                });
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function selectAnalysis(element, dir) {
+            // Remove selection from others
+            document.querySelectorAll('#analyses-list .card').forEach(c => c.classList.remove('analysis-selected'));
+            element.classList.add('analysis-selected');
+            // Load files for this analysis into the right pane
+            loadFiles(dir);
+        }
+
+        // Build a nested tree object from array of paths like ["sub/a.json","sub/b.json","c.json"]
+        function buildTree(paths) {
+            const root = {};
+            paths.forEach(p => {
+                const parts = p.split('/');
+                let node = root;
+                for (let i = 0; i < parts.length; i++) {
+                    const part = parts[i];
+                    if (i === parts.length - 1) {
+                        // leaf file
+                        node[part] = null;
+                    } else {
+                        node[part] = node[part] || {};
+                        node = node[part];
+                    }
+                }
+            });
+            return root;
+        }
+
+        // Render tree recursively into DOM elements (collapsible directories, files with view buttons)
+        function renderTree(node, dir, prefix = '') {
+            const container = document.createElement('div');
+            container.className = 'space-y-2 pl-4';
+
+            Object.keys(node).sort().forEach(key => {
+                if (node[key] === null) {
+                    // file leaf
+                    const filePath = prefix ? `${prefix}/${key}` : key;
+                    const safeId = ('json-' + (dir + '|' + filePath)).replace(/[^a-z0-9_-]/ig, '-');
+                    const fileCard = document.createElement('div');
+                    fileCard.className = 'card p-4';
+                    fileCard.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <div class="truncate"><strong>${key}</strong><div class="text-sm text-gray-400">${filePath}</div></div>
+                            <div class="space-x-2">
+                                <button class="btn-secondary px-3 py-1 text-sm" data-file="${filePath}" data-dir="${dir}">View</button>
+                            </div>
+                        </div>
+                        <div id="${safeId}" class="mt-3 hidden"><pre class="text-sm text-white p-3 bg-gray-900 overflow-auto rounded" style="max-height:300px;"></pre></div>
+                    `;
+                    container.appendChild(fileCard);
+                } else {
+                    // directory
+                    const dirCard = document.createElement('div');
+                    dirCard.className = 'card p-3';
+                    const curPrefix = prefix ? `${prefix}/${key}` : key;
+                    dirCard.innerHTML = `
+                        <div class="flex justify-between items-center cursor-pointer toggle-dir">
+                            <div><i class="fas fa-folder mr-2 text-yellow-400"></i><strong>${key}</strong></div>
+                            <div class="text-sm text-gray-400">Expand</div>
+                        </div>
+                        <div class="children hidden mt-2"></div>
+                    `;
+                    const childrenContainer = dirCard.querySelector('.children');
+                    childrenContainer.appendChild(renderTree(node[key], dir, curPrefix));
+                    container.appendChild(dirCard);
+                    // attach toggle
+                    dirCard.querySelector('.toggle-dir').addEventListener('click', (e) => {
+                        const ch = dirCard.querySelector('.children');
+                        ch.classList.toggle('hidden');
+                        const label = dirCard.querySelector('.toggle-dir > div:nth-child(2)');
+                        label.textContent = ch.classList.contains('hidden') ? 'Expand' : 'Collapse';
+                    });
+                }
+            });
+
+            return container;
+        }
+
+        async function loadFiles(dir) {
+            try {
+                const response = await fetch(`/api/reports/${encodeURIComponent(dir)}`);
+                const files = await response.json();
+                const list = document.getElementById('files-list');
+                list.classList.remove('hidden');
+                if (!files || files.length === 0) {
+                    list.innerHTML = `<div class="card p-4"><p class="text-gray-300">No JSON files found for this analysis.</p></div>`;
+                    return;
+                }
+
+                const tree = buildTree(files);
+                const treeDom = renderTree(tree, dir);
+                list.innerHTML = '';
+                list.appendChild(treeDom);
+
+                // Attach view button handlers (delegated)
+                list.querySelectorAll('button[data-file]').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const filePath = btn.getAttribute('data-file');
+                        const dirName = btn.getAttribute('data-dir');
+                        await loadJson(dirName, filePath, btn);
+                    });
+                });
+
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // Fetch JSON for a specific file and place it into the corresponding <pre>
+        async function loadJson(dir, file, triggerButton) {
+            try {
+                const safeId = ('json-' + (dir + '|' + file)).replace(/[^a-z0-9_-]/ig, '-');
+                const container = document.getElementById(safeId);
+                if (!container) return;
+                const pre = container.querySelector('pre');
+
+                // Toggle visibility if already loaded
+                if (!container.classList.contains('hidden') && pre.textContent.trim()) {
+                    container.classList.add('hidden');
+                    return;
+                }
+
+                // Show loading state
+                container.classList.remove('hidden');
+                pre.textContent = 'Loading...';
+
+                // Use query endpoint to avoid issues with percent-encoded slashes in path segments
+                const resp = await fetch(`/api/reports/file?analysis=${encodeURIComponent(dir)}&file=${encodeURIComponent(file)}`);
+                if (!resp.ok) {
+                    // Try to parse any JSON error body for a better message
+                    let errText = `${resp.status} ${resp.statusText}`;
+                    try {
+                        const err = await resp.json();
+                        if (err && err.error) errText = `${err.error}${err.path ? ' - ' + err.path : ''}`;
+                    } catch (e) { /* ignore parse errors */ }
+                    pre.textContent = `Failed to load file: ${errText}`;
+                    return;
+                }
+                const content = await resp.json();
+                pre.textContent = JSON.stringify(content, null, 2);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+    </script>
+</body>
+</html>
