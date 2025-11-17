@@ -133,11 +133,12 @@ pipeline {
             steps {
                 script {
                     def appContainer
-                    def targetUrl = "http://192.168.50.4:1234"  // FIX FOR LINUX HOST
+                    // This IP (172.17.0.1) is typical for Docker host on Linux; verify it works on your setup.
+                    def targetUrl = "http://172.17.0.1:1234" 
 
                     try {
                         echo "Starting application container on host port 1234..."
-                        // CHANGE: Updated image name.
+                        // Start your application
                         appContainer = sh(
                                 returnStdout: true,
                                 script: "docker run -d -p 1234:8080 alimsahlibw/sandbox:latest"
@@ -151,24 +152,25 @@ pipeline {
 
                         echo "App ready. Running ZAP Baseline scan..."
 
-                        // ZAP scan is language-agnostic
+                        // FIXED: Using the stable and officially supported ZAP image.
                         sh """
                             docker run --rm \
                                 --network=host \
                                 -v ${PWD}:/zap/wrk/:rw \
-                                owasp/zap2docker-weekly:latest \
+                                owasp/zap2docker-stable \ 
                                 zap-baseline.py \
                                     -t ${targetUrl} \
                                     -r zap-report.html \
                                     -x zap-report.xml \
                                     -I
                         """
+                        echo '✅ ZAP Baseline Scan finished. Reports archived.'
 
                     } catch (Exception e) {
                         echo "🚨 ZAP Stage Error: ${e.getMessage()}"
                     } finally {
                         if (appContainer) {
-                            echo "Cleaning up app container…"
+                            echo "Cleaning up app container: ${appContainer}…"
                             sh "docker stop ${appContainer}"
                             sh "docker rm ${appContainer}"
                         }
