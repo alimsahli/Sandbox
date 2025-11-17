@@ -132,16 +132,14 @@ pipeline {
         stage('OWASP ZAP SCAN (DAST)') {
             steps {
                 script {
-                    def appContainer
-                    // This IP (172.17.0.1) is typical for Docker host on Linux; verify it works on your setup.
-                    def targetUrl = "http://172.17.0.1:1234" 
+                    def appContainer = ""
+                    def targetUrl = "http://172.17.0.1:1234"
 
                     try {
                         echo "Starting application container on host port 1234..."
-                        // Start your application
                         appContainer = sh(
-                                returnStdout: true,
-                                script: "docker run -d -p 1234:8080 alimsahlibw/sandbox:latest"
+                            returnStdout: true,
+                            script: "docker run -d -p 1234:8080 alimsahlibw/sandbox:latest"
                         ).trim()
 
                         echo "Waiting for application to become ready..."
@@ -152,32 +150,35 @@ pipeline {
 
                         echo "App ready. Running ZAP Baseline scan..."
 
-                        // FIXED: Using the stable and officially supported ZAP image.
+                        // ZAP scan
                         sh """
                             docker run --rm \
                                 --network=host \
-                                -v ${PWD}:/zap/wrk/:rw \
-                                owasp/zap2docker-stable \ 
+                                -v "${PWD}:/zap/wrk/:rw" \
+                                owasp/zap2docker-stable \
                                 zap-baseline.py \
                                     -t ${targetUrl} \
                                     -r zap-report.html \
                                     -x zap-report.xml \
                                     -I
                         """
-                        echo '✅ ZAP Baseline Scan finished. Reports archived.'
+
+                        echo "✅ ZAP Baseline Scan finished. Reports generated: zap-report.html, zap-report.xml"
 
                     } catch (Exception e) {
                         echo "🚨 ZAP Stage Error: ${e.getMessage()}"
+                        error("ZAP scan failed")
                     } finally {
-                        if (appContainer) {
-                            echo "Cleaning up app container: ${appContainer}…"
-                            sh "docker stop ${appContainer}"
-                            sh "docker rm ${appContainer}"
+                        if (appContainer?.trim()) {
+                            echo "Cleaning up app container: ${appContainer}"
+                            sh "docker stop ${appContainer} || true"
+                            sh "docker rm ${appContainer} || true"
                         }
                     }
                 }
             }
         }
+
     }
     
     post {
