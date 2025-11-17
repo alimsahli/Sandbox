@@ -3,22 +3,17 @@ pipeline {
 
     stages {
 
-        stage('PYTHON SETUP & Build/Test'){
+        stage('PYTHON SETUP & Build & Test'){
             steps {
-                // This stage sets up the Python environment, installs dependencies, and runs tests.
-                // Assuming 'requirements.txt' is in the root and tests run via 'pytest'.
                 sh '''
-                    # Create and activate virtual environment
-                    python3 -m venv venv
-                    source venv/bin/activate
-                    
-                    # Install dependencies (assuming requirements.txt exists)
-                    pip install --upgrade pip
-                    pip install -r requirements.txt
-                    
-                    # Run tests (install pytest if not in requirements.txt and run)
-                    pip install pytest || true
-                    pytest || true  // Allow pipeline to continue even if tests fail
+                    # Use a Python Docker container to execute the build/test steps
+                    docker run --rm \
+                        -v $WORKSPACE:/app \
+                        -w /app \
+                        python:3.10-slim \
+                        sh -c "pip install -r requirements.txt && \
+                            pip install pytest && \
+                            pytest || true"
                 '''
             }
         }
