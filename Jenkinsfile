@@ -136,7 +136,7 @@ pipeline {
                     def targetUrl = "http://localhost:1234"
 
                     try {
-                        echo "Starting application container on host port 1234..."
+                        echo "Starting application container on port 1234..."
                         appContainer = sh(
                             returnStdout: true,
                             script: "docker run -d -p 1234:8080 alimsahlibw/sandbox:latest"
@@ -148,14 +148,13 @@ pipeline {
                             sh "curl -s -o /dev/null ${targetUrl}"
                         }
 
-                        echo "App ready. Running ZAP Baseline scan..."
+                        echo "App ready → Running ZAP scan..."
 
-                        // ZAP scan
                         sh """
                             docker run --rm \
                                 --network=host \
                                 -v "${PWD}:/zap/wrk/:rw" \
-                                owasp/zap2docker-stable \
+                                ghcr.io/zaproxy/zaproxy \
                                 zap-baseline.py \
                                     -t ${targetUrl} \
                                     -r zap-report.html \
@@ -163,14 +162,14 @@ pipeline {
                                     -I
                         """
 
-                        echo "✅ ZAP Baseline Scan finished. Reports generated: zap-report.html, zap-report.xml"
+                        echo "ZAP scan completed."
 
                     } catch (Exception e) {
                         echo "🚨 ZAP Stage Error: ${e.getMessage()}"
                         error("ZAP scan failed")
                     } finally {
                         if (appContainer?.trim()) {
-                            echo "Cleaning up app container: ${appContainer}"
+                            echo "Cleaning up container ${appContainer}"
                             sh "docker stop ${appContainer} || true"
                             sh "docker rm ${appContainer} || true"
                         }
