@@ -152,6 +152,7 @@ pipeline {
 
                         sh """
                             docker run --rm \
+                                --user 0 \
                                 --network=host \
                                 -v "${PWD}:/zap/wrk/:rw" \
                                 ghcr.io/zaproxy/zaproxy \
@@ -162,14 +163,10 @@ pipeline {
                                     -I
                         """
 
-                        echo "ZAP scan completed."
+                        echo "ZAP scan completed and report generated"
 
-                    } catch (Exception e) {
-                        echo "🚨 ZAP Stage Error: ${e.getMessage()}"
-                        error("ZAP scan failed")
                     } finally {
                         if (appContainer?.trim()) {
-                            echo "Cleaning up container ${appContainer}"
                             sh "docker stop ${appContainer} || true"
                             sh "docker rm ${appContainer} || true"
                         }
