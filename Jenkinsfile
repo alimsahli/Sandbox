@@ -133,7 +133,7 @@ pipeline {
             steps {
                 script {
                     def appContainer = ""
-                    def targetUrl = "http://172.17.0.1:1234"
+                    def targetUrl = "http://localhost:1234"
 
                     try {
                         echo "Starting application container on host port 1234..."
