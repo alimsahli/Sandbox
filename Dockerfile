@@ -1,7 +1,7 @@
-# Stage 1: Build Stage (Uses a minimal Python image)
-FROM python:3.10-slim-buster AS base
+# Use a slim Python base image for smaller size and security
+FROM python:3.10-slim
 
-# Set environment variables
+# Set environment variables for non-buffered output and Flask configuration
 ENV PYTHONUNBUFFERED 1
 ENV FLASK_APP app.py
 ENV FLASK_RUN_HOST 0.0.0.0
@@ -9,22 +9,17 @@ ENV FLASK_RUN_HOST 0.0.0.0
 # Set the working directory inside the container
 WORKDIR /app
 
-# Copy dependency files and install them
-# Using requirements.txt is best practice for dependency management
-COPY requirements.txt requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Flask and Gunicorn directly since requirements.txt is not used.
+# Gunicorn is crucial for running Flask in a production-like environment (like Jenkins/Docker).
+RUN pip install --no-cache-dir Flask gunicorn
 
-# Copy the rest of the application code
+# Copy ALL project files (including app.py, static/, templates/, etc.) 
+# from the Jenkins workspace into the container's /app directory
 COPY . .
 
-# Expose the port the application runs on
-# Flask's default development port is 5000, but 8080 is often used in CI/CD environments
+# Expose the port where Gunicorn will listen
 EXPOSE 8080
 
-# Stage 2: Production/Runtime Stage (You can skip this for simplicity if needed, but it's better for security)
-# FROM base
-
-# Command to run the application using Gunicorn (a production WSGI server)
-# Assuming 'app' is the Flask application instance defined in app.py
-# If you don't use Gunicorn, replace this with 'flask run' or 'python app.py'
+# Command to run the application using Gunicorn.
+# This assumes your Flask application instance inside app.py is named 'app'.
 CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:8080", "app:app"]
