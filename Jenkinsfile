@@ -205,7 +205,7 @@ pipeline {
 
             emailext(
                 subject: "✅ [Jenkins] DevSecOps Pipeline Success — ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                to: 'slim.bentanfous@esprit.tn',
+                to: 'alimsahli.si@gmail.com',
                 mimeType: 'text/html',
                 attachmentsPattern: 'zap-report.html,zap-report.xml,trivy-sca-report.json,gitleaks-report.json',
                 body: """
@@ -262,7 +262,7 @@ pipeline {
     failure {
         emailext(
             subject: "❌ [Jenkins] DevSecOps Pipeline Failed — ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-            to: 'slim.bentanfous@esprit.tn',
+            to: 'alimsahli.si@gmail.com',
             mimeType: 'text/html',
             attachmentsPattern: 'zap-report.html,zap-report.xml,trivy-sca-report.json,gitleaks-report.json',
             body: """
@@ -299,5 +299,6 @@ pipeline {
         )
     }
 }
+
 
 }
