@@ -133,7 +133,7 @@ pipeline {
             steps {
                 script {
                     def appContainer = ""
-                    def targetUrl = "http://localhost:1234"
+                    def targetUrl = "http://192.168.50.4:1234"
 
                     try {
                         echo "Starting application container on port 1234..."
@@ -182,14 +182,14 @@ pipeline {
         echo "📦 Archiving and publishing ZAP results..."
         archiveArtifacts artifacts: 'zap-report.html,zap-report.xml,trivy-sca-report.json,gitleaks-report.json', allowEmptyArchive: true
 
-        publishHTML(target: [
-            allowMissing: false,
-            alwaysLinkToLastBuild: true,
-            keepAll: true,
-            reportDir: '.',
-            reportFiles: 'zap-report.html',
-            reportName: 'OWASP ZAP Report'
-        ])
+        // publishHTML(target: [
+        //     allowMissing: false,
+        //     alwaysLinkToLastBuild: true,
+        //     keepAll: true,
+        //     reportDir: '.',
+        //     reportFiles: 'zap-report.html',
+        //     reportName: 'OWASP ZAP Report'
+        // ])
     }
 
     success {
