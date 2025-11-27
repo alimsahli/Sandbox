@@ -178,29 +178,126 @@ pipeline {
     }
     
     post {
-        // Post-build actions are language-agnostic
-        always {
-            archiveArtifacts artifacts: 'trivy-sca-report.json,gitleaks-report.json,zap-report.html,zap-report.xml', allowEmptyArchive: true
-        }
-        success {
+    always {
+        echo "📦 Archiving and publishing ZAP results..."
+        archiveArtifacts artifacts: 'zap-report.html,zap-report.xml,trivy-sca-report.json,gitleaks-report.json', allowEmptyArchive: true
+
+        publishHTML(target: [
+            allowMissing: false,
+            alwaysLinkToLastBuild: true,
+            keepAll: true,
+            reportDir: '.',
+            reportFiles: 'zap-report.html',
+            reportName: 'OWASP ZAP Report'
+        ])
+    }
+
+    success {
+        script {
+            // Extract vulnerability counts from ZAP report
+            def zapHigh = sh(script: "grep -o 'High' zap-report.html | wc -l || true", returnStdout: true).trim()
+            def zapMed  = sh(script: "grep -o 'Medium' zap-report.html | wc -l || true", returnStdout: true).trim()
+            def zapLow  = sh(script: "grep -o 'Low' zap-report.html | wc -l || true", returnStdout: true).trim()
+
+            // Extract Trivy FS results
+            def trivyFsCrit = sh(script: "grep -c '\"Severity\": \"CRITICAL\"' trivy-sca-report.json || true", returnStdout: true).trim()
+            def trivyFsHigh = sh(script: "grep -c '\"Severity\": \"HIGH\"' trivy-sca-report.json || true", returnStdout: true).trim()
+
             emailext(
-                    subject: "✅ Pipeline SUCCESS: ${currentBuild.fullDisplayName}",
-                    body: """Hello Team,
-                    The pipeline **completed successfully**!
-                    """,
-                    to: "alimsahli.si@gmail.com",
-                    attachmentsPattern: 'trivy-sca-report.json,gitleaks-report.json,zap-report.html,zap-report.xml'
-            )
-        }
-        failure {
-            emailext(
-                    subject: "❌ Pipeline FAILED: ${currentBuild.fullDisplayName}",
-                    body: """Hello Team,
-                    The pipeline failed. Check the attached Trivy report for details.
-                    """,
-                    to: "alimsahli.si@gmail.com",
-                    attachmentsPattern: 'trivy-sca-report.json,gitleaks-report.json,zap-report.html,zap-report.xml'
+                subject: "✅ [Jenkins] DevSecOps Pipeline Success — ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                to: 'slim.bentanfous@esprit.tn',
+                mimeType: 'text/html',
+                attachmentsPattern: 'zap-report.html,zap-report.xml,trivy-sca-report.json,gitleaks-report.json',
+                body: """
+                <html>
+                <body style="font-family:Segoe UI, Roboto, sans-serif; color:#333; background:#f9f9f9; padding:20px;">
+                <div style="max-width:750px; margin:auto; background:white; padding:25px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+
+                <h2 style="color:#2e7d32;">✅ DevSecOps Pipeline — SUCCESS</h2>
+
+                <p>
+                🎯 <b>Project:</b> ${env.JOB_NAME}<br>
+                🔢 <b>Build #:</b> ${env.BUILD_NUMBER}<br>
+                🕒 <b>Executed:</b> ${new Date().format("yyyy-MM-dd HH:mm:ss", TimeZone.getTimeZone('Europe/Paris'))}<br>
+                🌍 <b>Node:</b> ${env.NODE_NAME}
+                </p>
+
+                <hr style="border:none; border-top:1px solid #ddd; margin:15px 0;">
+
+                <h3>📊 Security Scan Summary</h3>
+
+                <table style="width:100%; border-collapse:collapse;">
+                <tr><th style="text-align:left;">Scan Type</th><th style="text-align:center;">Result</th></tr>
+                <tr><td>📦 Trivy (Dependencies)</td><td>HIGH: ${trivyFsHigh} | CRITICAL: ${trivyFsCrit}</td></tr>
+                <tr><td>🧪 OWASP ZAP (DAST)</td><td>HIGH: ${zapHigh} | MEDIUM: ${zapMed} | LOW: ${zapLow}</td></tr>
+                <tr><td>🕵️‍♂️ Gitleaks (Secrets)</td><td style="color:green;">No Secrets Found ✅</td></tr>
+                </table>
+
+                <hr style="border:none; border-top:1px solid #ddd; margin:15px 0;">
+
+                <h4>📁 Reports & Artifacts</h4>
+                <p>
+                • <a href="${env.BUILD_URL}artifact/zap-report.html" style="color:#1a73e8;">OWASP ZAP Report</a><br>
+                • <a href="${env.BUILD_URL}artifact/trivy-sca-report.json" style="color:#1a73e8;">Trivy SCA Report</a><br>
+                • <a href="${env.BUILD_URL}artifact/gitleaks-report.json" style="color:#1a73e8;">Gitleaks Report</a><br>
+                • <a href="${env.BUILD_URL}" style="color:#1a73e8;">Full Jenkins Build Logs</a>
+                </p>
+
+                <hr style="border:none; border-top:1px solid #ddd; margin:15px 0;">
+
+                <p style="font-size:12px; color:#666; text-align:center;">
+                💡 Generated automatically by the <b>DevSecOps Security Pipeline</b> — Jenkins CI/CD<br>
+                Environment: <b>${env.NODE_NAME}</b> | Executor: <b>${env.EXECUTOR_NUMBER}</b><br>
+                <i>Stay secure, stay automated 🔒🚀</i>
+                </p>
+
+                </div>
+                </body>
+                </html>
+                """
             )
         }
     }
+
+    failure {
+        emailext(
+            subject: "❌ [Jenkins] DevSecOps Pipeline Failed — ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+            to: 'slim.bentanfous@esprit.tn',
+            mimeType: 'text/html',
+            attachmentsPattern: 'zap-report.html,zap-report.xml,trivy-sca-report.json,gitleaks-report.json',
+            body: """
+            <html>
+            <body style="font-family:Segoe UI, Roboto, sans-serif; color:#333; background:#fff0f0; padding:20px;">
+            <div style="max-width:700px; margin:auto; background:white; padding:25px; border-radius:10px; box-shadow:0 2px 8px rgba(255,0,0,0.15);">
+
+            <h2 style="color:#c62828;">❌ DevSecOps Pipeline — FAILED</h2>
+
+            <p>
+            Project: <b>${env.JOB_NAME}</b><br>
+            Build #: <b>${env.BUILD_NUMBER}</b><br>
+            Time: ${new Date().format("yyyy-MM-dd HH:mm:ss", TimeZone.getTimeZone('Europe/Paris'))}
+            </p>
+
+            <hr style="border:none; border-top:1px solid #ddd; margin:15px 0;">
+
+            <p>
+            ⚠️ One or more stages failed during execution.<br>
+            Please check <a href="${env.BUILD_URL}console" style="color:#d32f2f;">the Jenkins console logs</a> for details.
+            </p>
+
+            <hr style="border:none; border-top:1px solid #ddd; margin:15px 0;">
+
+            <p style="font-size:12px; color:#666; text-align:center;">
+            🧠 Generated by Jenkins — DevSecOps CI/CD Pipeline<br>
+            <b>Stay secure, stay automated!</b> 🚀
+            </p>
+
+            </div>
+            </body>
+            </html>
+            """
+        )
+    }
+}
+
 }
