@@ -139,7 +139,7 @@ pipeline {
                         echo "Starting application container on port 1234..."
                         appContainer = sh(
                             returnStdout: true,
-                            script: "docker run -d -p 1234:8080 alimsahlibw/sandbox:latest"
+                            script: "docker run -d -p 1234:1234 alimsahlibw/sandbox:latest"
                         ).trim()
 
                         echo "Waiting for application to become ready..."

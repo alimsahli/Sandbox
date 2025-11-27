@@ -18,8 +18,8 @@ RUN pip install --no-cache-dir Flask gunicorn
 COPY . .
 
 # Expose the port where Gunicorn will listen
-EXPOSE 8080
+EXPOSE 1234
 
 # Command to run the application using Gunicorn.
 # This assumes your Flask application instance inside app.py is named 'app'.
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:8080", "app:app"]
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:1234", "app:app"]
