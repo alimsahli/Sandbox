@@ -48,7 +48,7 @@ pipeline {
                 SONAR_AUTH_TOKEN= credentials('sonarqube')
             }
             steps{
-                // CHANGE: Use the official Docker image for SonarScanner
+            
                 sh '''
                     docker run --rm \
                         -e SONAR_HOST_URL="${SONAR_HOST_URL}" \
@@ -70,7 +70,7 @@ pipeline {
             }
         }
 
-        stage('DEPENDENCY SCAN (SCA - Trivy via Docker)') {
+        stage('DEPENDENCY SCAN (SCA - Trivy)') {
             steps {
                 script {
                     // No change needed: Trivy's 'fs' scan automatically detects and scans Python dependencies (requirements.txt).
