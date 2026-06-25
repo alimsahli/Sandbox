@@ -59,31 +59,32 @@ jobs:
           npm ci # Clean install matching package-lock.json
           npm audit --audit-level=high # Fails if high/critical vulnerabilities found
 
-      # 6. SAST (GitHub CodeQL)
+      # 6. SAST (GitHub CodeQL) - Upgraded to v4
       - name: Initialize CodeQL Engine
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: 'python, javascript'
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
 
-      # 7. CONTAINER SCANNING (Trivy Local Stack)
+      # 7. CONTAINER SCANNING (Trivy Local Stack) - Fixed version and configuration
       - name: Build Docker Image Locally
         run: |
           docker build -t local/hybridllm-agentic-workflow:test -f deploy/Dockerfile .
 
       - name: Scan Docker Image for Vulnerabilities
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@v0.28.0
         with:
+          scan-type: 'image'
           image-ref: 'local/hybridllm-agentic-workflow:test'
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
 
-      # 8. UPLOAD TRIVY RESULTS TO GITHUB SECURITY TAB
+      # 8. UPLOAD TRIVY RESULTS TO GITHUB SECURITY TAB - Upgraded to v4
       - name: Upload Trivy results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
-        if: always() # Uploads results even if the scan found issues and failed
+        uses: github/codeql-action/upload-sarif@v4
+        if: always() 
         with:
           sarif_file: 'trivy-results.sarif'
