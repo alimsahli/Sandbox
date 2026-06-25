@@ -1,0 +1,89 @@
+name: Native DevSecOps Pipeline
+
+on:
+  push:
+    branches:
+      - Ali_secops
+
+permissions:
+  contents: read
+  security-events: write # Required to upload findings to GitHub Security Tab
+
+jobs:
+  devsecops-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # TruffleHog needs full history to scan commits
+
+      # 1. SECRET SCANNING (TruffleHog OSS)
+      - name: Scan for Hardcoded Secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --only-verified # Only fails on highly confident matches
+
+      # 2. PYTHON ENVIRONMENT SETUP
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Dependencies
+        run: uv sync
+
+      # 3. LINTING & QUALITY (Ruff & Mypy)
+      - name: Code Quality Checks
+        run: |
+          uv run ruff check .
+          uv run mypy .
+
+      # 4. PYTHON SCA (Dependency Vulnerabilities)
+      - name: Scan Python Dependencies (pip-audit)
+        run: |
+          uv pip install pip-audit
+          uv run pip-audit --local
+
+      # 5. FRONTEND SCA (NPM Audit)
+      - name: Scan Frontend Dependencies
+        working-directory: ./frontend
+        run: |
+          npm ci # Clean install matching package-lock.json
+          npm audit --audit-level=high # Fails if high/critical vulnerabilities found
+
+      # 6. SAST (GitHub CodeQL)
+      - name: Initialize CodeQL Engine
+        uses: github/codeql-action/init@v3
+        with:
+          languages: 'python, javascript'
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+      # 7. CONTAINER SCANNING (Trivy Local Stack)
+      - name: Build Docker Image Locally
+        run: |
+          docker build -t local/hybridllm-agentic-workflow:test -f deploy/Dockerfile .
+
+      - name: Scan Docker Image for Vulnerabilities
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'local/hybridllm-agentic-workflow:test'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      # 8. UPLOAD TRIVY RESULTS TO GITHUB SECURITY TAB
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() # Uploads results even if the scan found issues and failed
+        with:
+          sarif_file: 'trivy-results.sarif'
