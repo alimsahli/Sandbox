@@ -68,13 +68,13 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
 
-      # 7. CONTAINER SCANNING (Trivy Local Stack) - Fixed version and configuration
+      # 7. CONTAINER SCANNING (Trivy Local Stack)
       - name: Build Docker Image Locally
         run: |
           docker build -t local/hybridllm-agentic-workflow:test -f deploy/Dockerfile .
 
       - name: Scan Docker Image for Vulnerabilities
-        uses: aquasecurity/trivy-action@v0.28.0
+        uses: aquasecurity/trivy-action@v1.0.0   # <-- Switched to v1.0.0 to fix the setup-trivy error
         with:
           scan-type: 'image'
           image-ref: 'local/hybridllm-agentic-workflow:test'
