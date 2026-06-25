@@ -74,7 +74,7 @@ jobs:
           docker build -t local/hybridllm-agentic-workflow:test -f deploy/Dockerfile .
 
       - name: Scan Docker Image for Vulnerabilities
-        uses: aquasecurity/trivy-action@v1.0.0   # <-- Switched to v1.0.0 to fix the setup-trivy error
+        uses: aquasecurity/trivy-action@v0.36.0   # <-- Set to the verified stable tag
         with:
           scan-type: 'image'
           image-ref: 'local/hybridllm-agentic-workflow:test'
